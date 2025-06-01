@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0 # Ou a versão que preferir
+    container_name: meu_mysql_db # Nome do container
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: sua_senha_forte # MUDE ESTA SENHA
+      MYSQL_DATABASE: seu_banco_de_dados # Opcional: cria um banco de dados inicial
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql # Para persistir os dados
+volumes:
+  mysql_data:
