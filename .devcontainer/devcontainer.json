@@ -1,50 +1,8 @@
 {
   "image": "mcr.microsoft.com/devcontainers/universal:2",
   "features": {
-    // Você pode adicionar features do devcontainer aqui no futuro, se precisar
-    // Ex: "ghcr.io/devcontainers/features/docker-in-docker:2": {} para rodar Docker dentro do Docker (geralmente não necessário se o Docker já está disponível no Codespace)
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
-
   // Comando para ser executado toda vez que o Codespace inicia
-  "postStartCommand": "docker-compose up -d",
-
-  // Opcional, mas recomendado para projetos Django:
-  // Encaminhar as portas que sua aplicação usa
-  "forwardPorts": [
-    8000, // Porta padrão do Django
-    3306  // Porta padrão do MySQL (se você quiser acessá-la de fora do Codespace)
-  ],
-
-  // Opcional: Atributos para as portas encaminhadas
-  "portsAttributes": {
-    "8000": {
-      "label": "Django App",
-      "onAutoForward": "openPreview" // Abre automaticamente no navegador
-    },
-    "3306": {
-      "label": "MySQL"
-    }
-  },
-
-  // Opcional, mas recomendado: Personalizações do VS Code
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-python.python",       // Suporte essencial para Python
-        "ms-python.vscode-pylance", // Language server para Python
-        "ms-python.django",       // Suporte específico para Django (snippets, etc.)
-        "batisteo.vscode-django", // Outra extensão popular para Django
-        "ms-azuretools.vscode-docker" // Para gerenciamento de Docker
-        // Adicione outras extensões que você usa, ex: formatadores como Black, linters como Flake8
-      ],
-      "settings": {
-        // Configurações específicas do VS Code para este projeto
-        // "python.defaultInterpreterPath": "/usr/local/bin/python", // Pode já estar correto com a imagem base
-        "python.linting.pylintEnabled": false,
-        "python.linting.flake8Enabled": true, // Exemplo se você usa flake8
-        "python.formatting.provider": "black", // Exemplo se você usa black
-        "editor.formatOnSave": true
-      }
-    }
-  }
+  "postStartCommand": "docker-compose up -d"
 }

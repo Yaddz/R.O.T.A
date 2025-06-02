@@ -5,8 +5,7 @@ services:
     container_name: mysql-server # Nome do container
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: admin # MUDE ESTA SENHA
-      MYSQL_DATABASE: rota_db # Opcional: cria um banco de dados inicial
+      MYSQL_ROOT_PASSWORD: admin
     ports:
       - "3306:3306"
     volumes:
