@@ -31,3 +31,17 @@ class Desaparecido(models.Model):
 
     def __str__(self):
         return self.nome
+
+class HistoricoLocalizacao(models.Model):
+    desaparecido = models.ForeignKey(Desaparecido, related_name='historico_localizacoes', on_delete=models.CASCADE)
+    data_avistamento = models.DateTimeField(help_text="Data e hora em que a pessoa foi vista ou a localização foi registrada.")
+    latitude = models.DecimalField(max_digits=10, decimal_places=7)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7)
+    descricao_local = models.TextField(blank=True, null=True, help_text="Descrição do local ou circunstância do avistamento/registro.")
+    data_registro_historico = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data_avistamento'] # Mais recente primeiro por padrão na listagem do admin, mas podemos reordenar na query.
+
+    def __str__(self):
+        return f"Avistamento de {self.desaparecido.nome} em {self.data_avistamento.strftime('%d/%m/%Y %H:%M')}"

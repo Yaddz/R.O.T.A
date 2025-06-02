@@ -1,0 +1,71 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Editar {{ desaparecido.nome }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos gerais do formulário */
+    .form-container { max-width: 700px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .form-container h1 { text-align: center; color: #333; }
+    .form-container form p { margin-bottom: 15px; }
+    .form-container label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-container input[type="text"],
+    .form-container input[type="number"],
+    .form-container input[type="date"],
+    .form-container input[type="file"],
+    .form-container textarea,
+    .form-container select,
+    .form-container .form-control { /* Classe para inputs do formset */
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .form-container textarea { min-height: 100px; }
+    .form-container button[type="submit"] {
+        padding: 10px 20px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .form-container button[type="submit"]:hover { background-color: #218838; }
+    /* Estilos para o Formset */
+    .formset-container { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+    .formset-container h3 { margin-bottom: 15px; color: #555; }
+    .formset-item { margin-bottom: 25px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; }
+    .formset-item h4 { margin-top: 0; color: #007bff; }
+    .formset-item label { font-weight: normal; } /* Labels menos proeminentes dentro do formset */
+    .formset-item input[type="checkbox"] { margin-right: 5px; vertical-align: middle; }
+    .formset-item .delete-label { color: #dc3545; font-size: 0.9em; }
+    .errorlist { color: red; list-style-type: none; padding: 0; margin-bottom: 10px; }
+</style>
+
+<div class="form-container">
+    <h1>Editar Cadastro de: {{ desaparecido.nome }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div class="formset-container">
+            <h3>Histórico de Localizações / Adicionar Nova Aparição</h3>
+            {{ formset.management_form }}
+            {% for item_form in formset %}
+                <div class="formset-item">
+                    <h4>Aparição {{ forloop.counter }}</h4>
+                    {% if item_form.instance.pk and formset.can_delete %}
+                        <p><label for="{{ item_form.DELETE.id_for_label }}" class="delete-label">{{ item_form.DELETE.label }}</label> {{ item_form.DELETE }}</p>
+                    {% endif %}
+                    {{ item_form.as_p }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" style="margin-top:20px;">Salvar Alterações</button>
+    </form>
+    <br>
+    <a href="{% url 'desaparecido:Detalhar' desaparecido.id %}">Cancelar e Voltar aos Detalhes</a>
+</div>
+{% endblock %}

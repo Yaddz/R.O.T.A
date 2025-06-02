@@ -1,0 +1,696 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa R.O.T.A.</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <!-- Leaflet.markercluster CSS e JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+
+
+
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif; /* Fonte padrão */
+            overflow: hidden; /* Para evitar barras de rolagem se o mapa preencher tudo */
+        }
+        #map { /* ID do div onde o mapa será renderizado */
+            position: absolute; /* Ou fixed, dependendo do contexto do body */
+            top: 60px; /* Altura do header. Ajuste se necessário. */
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 60px); /* Altura da viewport menos a altura do header */
+        }
+        /* Header Styles */
+        .map-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff; /* Header branco */
+            color: #333333; /* Texto escuro para contraste */
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1001; /* Acima do FAB de login e do mapa */
+            box-sizing: border-box;
+            border-bottom: 1px solid #e0e0e0; /* Linha sutil abaixo do header */
+        }
+        .map-header .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-decoration: none;
+            color: #333333; /* Cor do logo */
+            /* Se você tiver uma imagem de logo:
+            content: url("{% static 'path/to/your/logo_dark.png' %}");
+            height: 40px; */
+        }
+        .map-header .nav-links a, .map-header .nav-links button {
+            color: #333333; /* Cor dos links do header */
+            text-decoration: none;
+            margin-left: 15px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+        .map-header .nav-links a:hover, .map-header .nav-links button:hover {
+            background-color: #f0f0f0; /* Fundo suave no hover */
+            color: #007bff; /* Cor do link no hover */
+        }
+        .map-header .nav-links .add-btn {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .map-header .nav-links .add-btn:hover {
+            background-color: #218838;
+        }
+        .map-header .nav-links .logout-btn { /* Estilo para o botão de logout no mapa */
+            background-color: #dc3545; /* Vermelho */
+            color: white !important; /* Garante texto branco */
+            border-color: #dc3545;
+        }
+        .map-header .nav-links .logout-btn:hover {
+            background-color: #c82333; /* Vermelho mais escuro */
+        }
+        .user-greeting {
+            margin-left: 15px;
+            padding: 8px 0;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1002; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 25px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 550px; /* Aumentar um pouco para formulários */
+            border-radius: 8px;
+            position: relative;
+        }
+        .modal-content h2 { margin-top: 0;}
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-content form label { display: block; margin-bottom: 5px; font-weight: bold;}
+        .modal-content form input[type="text"],
+        .modal-content form input[type="password"],
+        .modal-content form input[type="number"],
+        .modal-content form input[type="date"],
+        .modal-content form input[type="file"],
+        .modal-content form textarea,
+        .modal-content form select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .modal-content form button[type="submit"] {
+            /* Estilo padrão para botões de submit em modais */
+            background-color: #007bff; 
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-error { color: red; font-size: 0.9em; margin-bottom: 10px;}
+        .form-error ul { padding-left: 20px; margin-top: 5px;}
+
+        /* Detalhes Modal Específico */
+        #detalhesModalContent img { max-width: 150px; max-height: 150px; border-radius: 4px; margin-bottom: 10px;}
+        #detalhesModalContent p { margin: 5px 0; }
+        #detalhesModalContent .detail-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;}
+        #detalhesModalContent .detail-section:last-child { border-bottom: none; }
+        #detalhesModalContent strong { color: #555; }
+        .timeline { list-style-type: none; padding-left: 0;}
+        .timeline li { padding: 8px 0; border-bottom: 1px dashed #eee; }
+        .timeline li:last-child { border-bottom: none; }
+        .timeline .date { font-weight: bold; color: #007bff; }
+        .timeline .location-desc { font-style: italic; color: #666; }
+
+        .popup-edit-btn {
+            background-color: #ffc107; /* Amarelo */
+            color: #212529; /* Texto escuro para contraste com amarelo */
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 15px;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header class="map-header">
+        <a href="{% url 'mapa_view' %}" class="logo">R.O.T.A.</a>
+        <nav class="nav-links">
+            <a href="{% url 'desaparecido:Relatorios' %}">Relatórios</a>
+            <a href="{% url 'desaparecido:Exibir' %}">Lista de Desaparecidos</a>
+            {% if user.is_authenticated %}
+                <span class="user-greeting">Olá, {{ user.username }}!</span>
+                <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Logout</button>
+                </form> {% if user.is_staff %}
+                    <button type="button" id="addDesaparecidoBtn" class="add-btn">+ Adicionar</button>
+                {% endif %}
+            {% else %}
+                <button type="button" id="loginPopupBtn">Login</button>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div id="map"></div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeLoginModal">&times;</span>
+            <h2>Login</h2>
+            <div id="loginErrorMessages" class="form-error"></div>
+            <form id="loginPopupForm">
+                {% csrf_token %}
+                <label for="popup_username">Usuário:</label>
+                <input type="text" id="popup_username" name="username" required>
+                <label for="popup_password">Senha:</label>
+                <input type="password" id="popup_password" name="password" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <p style="margin-top: 15px; text-align: center;">
+                Não tem uma conta? <a href="{% url 'register' %}">Cadastre-se aqui</a>.
+            </p>
+        </div>
+    </div>
+
+    <!-- Detalhes Desaparecido Modal -->
+    <div id="detalhesModal" class="modal">
+        <div class="modal-content" id="detalhesModalContent">
+            <span class="close-btn" id="closeDetalhesModal">&times;</span>
+            <h2>Detalhes do Desaparecido</h2>
+            <div id="detalhesContent">Carregando...</div>
+        </div>
+    </div>
+
+    <!-- Editar Desaparecido Modal -->
+    <div id="editarDesaparecidoModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;"> {# Modal maior para o formulário de edição #}
+            <span class="close-btn" id="closeEditarModal">&times;</span>
+            <h2>Editar Cadastro de Desaparecido</h2>
+            <div id="editarDesaparecidoContent">Carregando formulário...</div>
+        </div>
+    </div>
+
+    <!-- Cadastrar Desaparecido Modal -->
+    <div id="cadastrarModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeCadastrarModal">&times;</span>
+            <h2>Cadastrar Novo Desaparecido</h2>
+            <div id="cadastroErrorMessages" class="form-error"></div>
+            <form id="cadastrarPopupForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                {# Aqui vamos renderizar os campos do FormularioDesaparecido manualmente ou com {{ form.as_p }} se passarmos o form #}
+                {# Para AJAX, é mais fácil construir o form no JS ou ter os campos aqui e pegar os valores #}
+                <p><label for="id_nome_cadastro">Nome Completo:</label><input type="text" name="nome" required id="id_nome_cadastro"></p>
+                <p><label for="id_idade_cadastro">Idade:</label><input type="number" name="idade" id="id_idade_cadastro"></p>
+                <p><label for="id_data_desaparecimento_cadastro">Data do Desaparecimento:</label><input type="date" name="data_desaparecimento" id="id_data_desaparecimento_cadastro"></p>
+                <p><label for="id_descricao_cadastro">Descrição:</label><textarea name="descricao" id="id_descricao_cadastro"></textarea></p>
+                <p><label for="id_ultima_localizacao_cadastro">Última Localização (Endereço):</label><input type="text" name="ultima_localizacao" id="id_ultima_localizacao_cadastro"></p>
+                <button type="button" onclick="buscarCoordenadasParaCadastro()" style="margin-bottom:15px; background-color: #17a2b8;">Buscar Coords. p/ Endereço Acima</button>
+                <div id="coordenadas_status_cadastro" style="font-style: italic; color: #555; margin-bottom:10px;"></div>
+
+                <p><label for="id_latitude_cadastro">Latitude:</label><input type="text" name="latitude" id="id_latitude_cadastro"></p>
+                <p><label for="id_longitude_cadastro">Longitude:</label><input type="text" name="longitude" id="id_longitude_cadastro"></p>
+                <p><label for="id_bo_numero_cadastro">Nº B.O.:</label><input type="text" name="bo_numero" id="id_bo_numero_cadastro"></p>
+                <p><label for="id_status_cadastro">Status:</label>
+                    <select name="status" id="id_status_cadastro">
+                        <option value="desaparecido" selected>Desaparecido</option>
+                        <option value="encontrado">Encontrado</option>
+                        <option value="em_investigacao">Em Investigação</option>
+                    </select></p>
+                <p><label for="id_foto_principal_cadastro">Foto Principal:</label><input type="file" name="foto_principal" id="id_foto_principal_cadastro"></p>
+                <p><label for="id_foto_progressao_cadastro">Foto de Progressão:</label><input type="file" name="foto_progressao" id="id_foto_progressao_cadastro"></p>
+                <button type="submit" style="background-color: #28a745;">Salvar Cadastro</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var map = L.map('map').setView([-15.793889, -47.882778], 10); // Foco em Brasília com zoom 10
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Criar um grupo de marcadores para clustering
+        var markers = L.markerClusterGroup();
+
+        // Adicionar o grupo de cluster ao mapa UMA VEZ aqui.
+        // As camadas (marcadores) serão adicionadas a este grupo depois.
+        map.addLayer(markers);
+
+        // Função para criar o conteúdo do popup do Leaflet (usado no hover)
+        function criarPopupContent(properties) {
+            let fotoHtml = properties.foto_url 
+                ? `<img src="${properties.foto_url}" alt="Foto de ${properties.nome}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
+                : '<div style="width: 120px; height: 120px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 4px; margin-right: 10px; font-size:0.8em; color:#6c757d; text-align:center;">Sem foto</div>';
+            
+            return `
+                <div style="display: flex; align-items: flex-start; font-family: Arial, sans-serif; font-size: 14px; max-width: 280px;">
+                    <div style="flex-shrink: 0;">
+                        ${fotoHtml}
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <strong style="font-size: 1.1em; display: block; margin-bottom: 4px;">${properties.nome}</strong>
+                        <span style="display: block; margin-bottom: 2px;">${properties.idade} Anos</span>
+                        <span style="display: block; font-size: 0.9em; color: #555;">
+                            Desapareceu em: ${properties.data_desaparecimento || 'N/A'}
+                        </span>
+                    </div>
+                </div>
+                <div style="font-family: Arial, sans-serif; font-size: 12px; text-align: center; margin-top: 8px; color: #666;">
+                    <em style="font-size:0.9em;">Clique no ponto para mais detalhes.</em>
+                </div>
+            `;
+        }
+
+        // Função para carregar e exibir os desaparecidos no mapa
+        async function carregarDesaparecidosNoMapa() {
+            console.log("Iniciando carregamento de desaparecidos...");
+            try {
+                const response = await fetch("{% url 'desaparecido:GeoJSON' %}");
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Dados GeoJSON recebidos:", data);
+
+                markers.clearLayers(); // Limpa marcadores anteriores antes de adicionar novos
+
+        // Carregar os pontos dos desaparecidos
+            var geoJsonLayer = L.geoJSON(data, {
+              pointToLayer: function (feature, latlng) {
+                // Usar L.circleMarker para pontos esféricos
+                return L.circleMarker(latlng, {
+                  radius: 12, // Aumentado o raio para marcadores maiores
+                  fillColor: "#007bff", // Cor de preenchimento azul
+                  color: "#fff",      // Cor da borda branca
+                  weight: 2,           // Espessura da borda
+                  opacity: 1,
+                  fillOpacity: 0.7
+                });
+              },
+              onEachFeature: function (feature, layer) {
+                if (feature.properties) {
+                  const popupContent = criarPopupContent(feature.properties);
+                  layer.bindPopup(popupContent); // Popup para o hover
+
+                  // Abrir popup no mouseover e fechar no mouseout
+                  layer.on('mouseover', function (e) {
+                    this.openPopup(); // Abre o popup do Leaflet no hover
+                  });
+                  layer.on('mouseout', function (e) {
+                    this.closePopup();
+                  });
+
+                  // Abrir modal de detalhes diretamente ao clicar no marcador
+                  layer.on('click', function(e) {
+                    abrirDetalhesPopup(feature.properties.id); // Abre o modal de detalhes no clique
+                  });
+                }
+              }
+            });
+
+            markers.addLayer(geoJsonLayer); // Adicionar a camada GeoJSON ao grupo de cluster
+            console.log("Marcadores adicionados ao markerClusterGroup.");
+
+                // Após os marcadores serem adicionados ao mapa:
+                if (window.initialDesaparecidoIdToFocus) {
+                    const targetId = parseInt(window.initialDesaparecidoIdToFocus);
+                    console.log("Tentando focar no desaparecido ID:", targetId);
+                    let foundLayer = null;
+                    markers.eachLayer(function(layer) {
+                        if (layer.feature && layer.feature.properties && layer.feature.properties.id === targetId) {
+                            foundLayer = layer;
+                        }
+                    });
+                    if (foundLayer) {
+                        markers.zoomToShowLayer(foundLayer, function() {
+                            console.log("Zoom efetuado para o desaparecido ID:", targetId);
+                            abrirDetalhesPopup(targetId);
+                        });
+                    } else {
+                        console.log("Desaparecido ID para foco não encontrado nos marcadores:", targetId);
+                    }
+                    window.initialDesaparecidoIdToFocus = null; // Limpa para não re-focar
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados GeoJSON dos desaparecidos:", error);
+            }
+        }
+        // Adicionar um listener para o evento de clique em um cluster
+        markers.on('clusterclick', function (e) {
+            // 'e.layer' é o cluster que foi clicado
+            console.log('Cluster clicado:', e.layer);
+            console.log('Número de marcadores neste cluster:', e.layer.getChildCount());
+            // console.log('Marcadores filhos:', e.layer.getAllChildMarkers()); // Descomente para ver os marcadores individuais
+            
+            // A ação padrão de zoom para os limites do cluster ainda ocorrerá,
+            // a menos que zoomToBoundsOnClick seja definido como false nas opções do markerClusterGroup.
+        });
+
+        // --- Lógica para focar no mapa via URL params ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialLat = urlParams.get('lat');
+            const initialLon = urlParams.get('lon');
+            const initialZoom = urlParams.get('zoom');
+            
+            window.initialDesaparecidoIdToFocus = urlParams.get('desaparecido_id'); // Armazena para uso posterior
+
+            if (initialLat && initialLon) {
+                map.setView([parseFloat(initialLat), parseFloat(initialLon)], initialZoom ? parseInt(initialZoom) : 17);
+            }
+            
+            // Chamar a função para carregar os desaparecidos
+            carregarDesaparecidosNoMapa();
+        });
+        // --- Login Modal Logic ---
+        // Seletores e manipuladores de eventos para o modal de login
+        const loginModal = document.getElementById('loginModal');
+        const loginPopupBtn = document.getElementById('loginPopupBtn');
+        const closeLoginModalBtn = document.getElementById('closeLoginModal');
+        const loginPopupForm = document.getElementById('loginPopupForm');
+        const loginErrorMessagesDiv = document.getElementById('loginErrorMessages');
+
+        if (loginPopupBtn) {
+            loginPopupBtn.onclick = function() {
+                loginModal.style.display = "block";
+                loginErrorMessagesDiv.innerHTML = ''; // Limpa erros anteriores
+            }
+        }
+        if (closeLoginModalBtn) {
+            closeLoginModalBtn.onclick = function() {
+                loginModal.style.display = "none";
+            }
+        }
+        window.onclick = function(event) {
+            if (event.target == loginModal) {
+                loginModal.style.display = "none";
+            }
+            if (event.target == cadastrarModal) { // Fechar modal de cadastro
+                cadastrarModal.style.display = "none";
+            }
+            if (event.target == editarDesaparecidoModal) { // Fechar modal de edição
+                editarDesaparecidoModal.style.display = "none";
+            }
+            if (event.target == detalhesModal) { // Fechar modal de detalhes também
+                detalhesModal.style.display = "none";
+            }
+        }
+
+        loginPopupForm.onsubmit = async function(event) {
+            event.preventDefault();
+            loginErrorMessagesDiv.innerHTML = '';
+            const formData = new FormData(loginPopupForm);
+            const csrfToken = formData.get('csrfmiddlewaretoken'); // Pegar o token do form
+
+            try {
+                const response = await fetch("{% url 'ajax_login' %}", {
+                    method: 'POST',
+                    body: formData,
+                    // headers: {'X-CSRFToken': csrfToken } // FormData já lida com isso para POSTs não-JSON
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Sucesso no login, recarrega a página para atualizar o estado do usuário (header, etc.)
+                    window.location.reload(); // Recarrega a página para refletir o estado de login
+                } else {
+                    let errorHtml = '<strong>Erro no login:</strong><ul>';
+                    if (data.errors.non_field_errors) {
+                        data.errors.non_field_errors.forEach(err => errorHtml += `<li>${err}</li>`);
+                    } else {
+                         errorHtml += `<li>Usuário ou senha inválidos.</li>`; // Mensagem genérica
+                    }
+                     for (const field in data.errors) {
+                        if (field !== 'non_field_errors' && data.errors.hasOwnProperty(field)) {
+                            data.errors[field].forEach(err => errorHtml += `<li>${field}: ${err}</li>`);
+                        }
+                    }
+                    errorHtml += '</ul>';
+                    loginErrorMessagesDiv.innerHTML = errorHtml;
+                }
+            } catch (error) {
+                console.error('Erro no fetch do login:', error);
+                loginErrorMessagesDiv.innerHTML = 'Ocorreu um erro ao tentar fazer login. Tente novamente.';
+            }
+        }
+
+        // --- Detalhes Desaparecido Modal Logic ---
+        // Seletores e manipuladores de eventos para o modal de detalhes
+        const detalhesModal = document.getElementById('detalhesModal');
+        const closeDetalhesModalBtn = document.getElementById('closeDetalhesModal');
+        const detalhesContentDiv = document.getElementById('detalhesContent');
+
+        if(closeDetalhesModalBtn) {
+            closeDetalhesModalBtn.onclick = function() {
+                detalhesModal.style.display = "none";
+            }
+        }
+
+        // Função para buscar e exibir detalhes de um desaparecido no modal
+        let currentTimelineData = []; // Armazenar dados da timeline para o trajeto
+
+        async function abrirDetalhesPopup(desaparecidoId) {
+            detalhesContentDiv.innerHTML = 'Carregando...';
+            detalhesModal.style.display = "block";
+            try {
+                const response = await fetch(`/desaparecidos/${desaparecidoId}/json_details/`); // Usando a URL diretamente
+                if (!response.ok) throw new Error('Não foi possível carregar os detalhes.');
+                const data = await response.json();
+                currentTimelineData = data.timeline || []; // Salva os dados da timeline
+                
+                let fotoHtml = data.foto_principal_url 
+                    ? `<img src="${data.foto_principal_url}" alt="Foto de ${data.nome}">`
+                    : '<p>Sem foto principal</p>';
+                
+                let timelineHtml = '<li>Nenhum histórico de localização disponível.</li>';
+                if (currentTimelineData.length > 0) {
+                    timelineHtml = currentTimelineData.map(item => `
+                        <li>
+                            <span class="date">${item.data_avistamento}:</span>
+                            <span class="location-desc">${item.descricao_local} (Lat: ${item.latitude.toFixed(4)}, Lon: ${item.longitude.toFixed(4)})</span>
+                        </li>
+                    `).join('');
+                }
+
+                // Estrutura melhorada para os detalhes
+                detalhesContentDiv.innerHTML = `
+                    <div class="detail-section">
+                        ${fotoHtml}
+                        <p><strong>Nome:</strong> ${data.nome}</p>
+                        <p><strong>Idade (no desaparecimento):</strong> ${data.idade}</p>
+                    </div>
+                    <div class="detail-section">
+                        <p><strong>Data do Desaparecimento:</strong> ${data.data_desaparecimento}</p>
+                        <p><strong>Última Localização Conhecida:</strong> ${data.ultima_localizacao}</p>
+                    </div>
+                    <div class="detail-section">
+                        <p><strong>Descrição/Observações:</strong></p>
+                        <p>${data.descricao.replace(/\n/g, '<br>')}</p>
+                    </div>
+                    <!-- Placeholder para Timeline e Trajeto (Fases Futuras) -->
+                    <div class="detail-section">
+                        <h4>Histórico de Localizações (Timeline)</h4>
+                        <ul class="timeline" id="timelineList">${timelineHtml}</ul>
+                    </div>
+                    <button type="button" id="exibirTrajetoBtn" style="display:none; margin-top:10px;">Exibir Trajeto no Mapa</button>
+                    ${data.user_is_staff && data.edit_url ? `
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                            <button type="button" class="popup-edit-btn" onclick="abrirEditarPopup(${desaparecidoId})">Editar Cadastro</button>
+                        </div>
+                    ` : ''}
+                `;
+
+                // Agora que o HTML do modal foi definido, podemos acessar o botão
+            } catch (error) {
+                console.error('Erro ao buscar detalhes do desaparecido:', error);
+                detalhesContentDiv.innerHTML = `<p style="color:red;">Erro ao carregar detalhes: ${error.message}</p>`;
+            }
+        }
+
+        // --- Cadastrar Desaparecido Modal Logic ---
+        const cadastrarModal = document.getElementById('cadastrarModal');
+        const addDesaparecidoBtn = document.getElementById('addDesaparecidoBtn');
+        const closeCadastrarModalBtn = document.getElementById('closeCadastrarModal');
+        const cadastrarPopupForm = document.getElementById('cadastrarPopupForm');
+        const cadastroErrorMessagesDiv = document.getElementById('cadastroErrorMessages');
+
+        if (addDesaparecidoBtn) {
+            addDesaparecidoBtn.onclick = function() {
+                cadastrarModal.style.display = "block";
+                cadastrarPopupForm.reset(); // Limpa o formulário
+                cadastroErrorMessagesDiv.innerHTML = ''; // Limpa erros anteriores
+                document.getElementById('coordenadas_status_cadastro').innerHTML = '';
+            }
+        }
+        if (closeCadastrarModalBtn) {
+            closeCadastrarModalBtn.onclick = function() {
+                cadastrarModal.style.display = "none";
+            }
+        }
+
+        cadastrarPopupForm.onsubmit = async function(event) {
+            event.preventDefault();
+            cadastroErrorMessagesDiv.innerHTML = '';
+            const formData = new FormData(cadastrarPopupForm);
+
+            try {
+                const response = await fetch("{% url 'desaparecido:AjaxCadastrar' %}", {
+                    method: 'POST',
+                    body: formData,
+                    // Django espera o CSRF token, FormData o inclui se o campo {% csrf_token %} estiver no form
+                });
+                const data = await response.json();
+                if (data.success) {
+                    cadastrarModal.style.display = "none";
+                    alert(data.message); // Simples alerta de sucesso
+                    // Idealmente, adicionar o novo ponto ao mapa sem recarregar ou recarregar os dados do mapa
+                    // Por simplicidade, vamos recarregar a página por enquanto
+                    window.location.reload();
+                } else if (response.status === 400 && data.errors) { // Erros de validação do formulário
+                    let errorHtml = '<strong>Erro ao cadastrar:</strong><ul>';
+                    for (const field in data.errors) {
+                        // Se o erro for em '__all__', não prefixe com o nome do campo
+                        if (field === '__all__') {
+                            data.errors[field].forEach(err => errorHtml += `<li>${err}</li>`);
+                        } else {
+                            // Tenta encontrar o label do campo para uma mensagem mais amigável
+                            const labelElement = cadastrarPopupForm.querySelector(`label[for="id_${field}_cadastro"]`);
+                            const fieldName = labelElement ? labelElement.innerText.replace(':', '') : field;
+                            data.errors[field].forEach(err => errorHtml += `<li>${fieldName}: ${err}</li>`);
+                        }
+                    }
+                    errorHtml += '</ul>';
+                    cadastroErrorMessagesDiv.innerHTML = errorHtml;
+                } else if (response.status === 500 && data.errors && data.errors.__all__) { // Erro genérico do servidor
+                    let errorHtml = '<strong>Erro interno ao cadastrar:</strong><ul>';
+                    data.errors.__all__.forEach(err => errorHtml += `<li>${err}</li>`);
+                    errorHtml += '</ul>';
+                    cadastroErrorMessagesDiv.innerHTML = errorHtml;
+                } else {
+                    // Outro tipo de erro não esperado
+                    cadastroErrorMessagesDiv.innerHTML = 'Ocorreu um erro inesperado ao tentar cadastrar.';
+                }
+            } catch (error) {
+                console.error('Erro no fetch do cadastro:', error);
+                cadastroErrorMessagesDiv.innerHTML = 'Ocorreu um erro ao tentar cadastrar. Tente novamente.';
+            }
+        }
+
+        // Função para buscar coordenadas para o formulário de cadastro (similar à de adicionar.html)
+        async function buscarCoordenadasParaCadastro() {
+            const endereco = document.getElementById('id_ultima_localizacao_cadastro').value.trim();
+            const statusDiv = document.getElementById('coordenadas_status_cadastro');
+            if (!endereco) {
+                statusDiv.textContent = 'Digite o endereço no campo "Última Localização" primeiro.';
+                statusDiv.style.color = 'red';
+                return;
+            }
+            statusDiv.textContent = `Buscando coordenadas para: ${endereco}...`;
+            statusDiv.style.color = '#007bff';
+            const query = encodeURIComponent(endereco);
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    document.getElementById('id_latitude_cadastro').value = parseFloat(data[0].lat).toFixed(7);
+                    document.getElementById('id_longitude_cadastro').value = parseFloat(data[0].lon).toFixed(7);
+                    statusDiv.textContent = `Coordenadas encontradas: Lat ${data[0].lat}, Lon ${data[0].lon}`;
+                    statusDiv.style.color = 'green';
+                } else {
+                    statusDiv.textContent = 'Coordenadas não encontradas. Insira manualmente.';
+                    statusDiv.style.color = 'orange';
+                }
+            } catch (error) {
+                statusDiv.textContent = 'Erro ao buscar coordenadas. Insira manualmente.';
+                statusDiv.style.color = 'red';
+            }
+        }
+
+        // --- Editar Desaparecido Modal Logic ---
+        const editarDesaparecidoModal = document.getElementById('editarDesaparecidoModal');
+        const closeEditarModalBtn = document.getElementById('closeEditarModal');
+        const editarDesaparecidoContentDiv = document.getElementById('editarDesaparecidoContent');
+
+        if (closeEditarModalBtn) {
+            closeEditarModalBtn.onclick = function() {
+                editarDesaparecidoModal.style.display = "none";
+            }
+        }
+
+        async function abrirEditarPopup(desaparecidoId) {
+            detalhesModal.style.display = "none"; // Fecha o modal de detalhes se estiver aberto
+            editarDesaparecidoContentDiv.innerHTML = 'Carregando formulário de edição...';
+            editarDesaparecidoModal.style.display = "block";
+            try {
+                // A URL precisa ser construída dinamicamente
+                const editFormUrl = `/desaparecidos/${desaparecidoId}/ajax_edit_form/`;
+                const response = await fetch(editFormUrl);
+                if (!response.ok) throw new Error('Não foi possível carregar o formulário de edição.');
+                const htmlFormContent = await response.text();
+                editarDesaparecidoContentDiv.innerHTML = htmlFormContent;
+            } catch (error) {
+                console.error('Erro ao carregar formulário de edição:', error);
+                editarDesaparecidoContentDiv.innerHTML = `<p style="color:red;">Erro ao carregar formulário: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

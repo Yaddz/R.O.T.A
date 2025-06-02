@@ -1,12 +1,128 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Desaparecidos Cadastrados</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        h1 { color: #333; text-align: center; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: #ffffff;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e9ecef;
+        }
+        img {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        .actions a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+        .actions a:hover {
+            text-decoration: underline;
+        }
+        .btn-cadastrar {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .btn-cadastrar:hover {
+            background-color: #218838;
+        }
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+        .search-container {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        .search-container input[type="text"] {
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 300px;
+        }
+    </style>
 </head>
 <body>
     <h1>Desaparecidos cadastrados</h1>
-    <a href="{% url 'desaparecido:Cadastrar' %}">Cadastrar desaparecido</a>
+    <a href="{% url 'mapa_view' %}" class="btn-cadastrar" style="background-color: #6c757d; margin-bottom: 10px; float: left;">Voltar para o Mapa</a>
+    {% if user.is_authenticated and user.is_staff %}
+        <a href="{% url 'desaparecido:Cadastrar' %}" class="btn-cadastrar" style="margin-bottom: 10px; float: left; margin-left: 10px;">Cadastrar Novo Desaparecido</a>
+    {% endif %}
+
+    {% if messages %}
+        <ul class="messages" style="list-style-type: none; padding: 0;">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}" style="padding: 10px; margin-bottom: 10px; border-radius: 4px; color: white; {% if message.tags == 'success' %}background-color: #28a745;{% elif message.tags == 'error' %}background-color: #dc3545;{% else %}background-color: #007bff;{% endif %}"{% endif %}>
+                    {{ message }}
+                    <button onclick="this.parentElement.style.display='none';" style="float: right; background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;">&times;</button>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="search-container" style="clear:both; padding-top: 10px;">
+        <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Pesquisar por nome, localização, status...">
+    </div>
+
+    {% include "desaparecido/_tabela_desaparecidos_completa.html" %}
+
+    <script>
+        function filterTable() {
+            // Declarações
+            var input, filter, table, tr, td, i, j, txtValue;
+            input = document.getElementById("searchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("desaparecidosTableCompleta");
+            tr = table.getElementsByTagName("tr");
+
+            // Loop por todas as linhas da tabela, e esconde aquelas que não correspondem à pesquisa
+            for (i = 1; i < tr.length; i++) { // Começa em 1 para pular o header (thead)
+                tr[i].style.display = "none"; // Começa escondendo a linha
+                td = tr[i].getElementsByTagName("td");
+                for (j = 0; j < td.length; j++) { // Loop por todas as células da linha atual
+                    if (td[j]) {
+                        txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = ""; // Mostra a linha se encontrar correspondência
+                            break; // Para de verificar outras células nesta linha
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>

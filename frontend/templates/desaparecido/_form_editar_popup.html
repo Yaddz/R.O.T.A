@@ -1,0 +1,51 @@
+{% comment %} Template parcial para o formulário de edição no popup {% endcomment %}
+<form id="editarPopupForm" enctype="multipart/form-data" method="post" action="{% url 'desaparecido:Editar' desaparecido.id %}">
+    {% csrf_token %}
+    
+    {# Renderiza os campos do formulário principal. Você pode personalizar o layout aqui. #}
+    {% for field in form %}
+        <p>
+            <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+            {{ field }}
+            {% if field.help_text %}
+                <small style="color: grey">{{ field.help_text }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+                <p class="form-error" style="color: red;">{{ error }}</p>
+            {% endfor %}
+        </p>
+    {% endfor %}
+
+    <div class="formset-container" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+        <h4>Histórico de Localizações</h4>
+        {{ formset.management_form }}
+        {% for item_form in formset %}
+            <div class="formset-item" style="margin-bottom: 15px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px;">
+                <h5>Aparição {{ forloop.counter }}</h5>
+                 {% if item_form.instance.pk and formset.can_delete %}
+                    <p style="font-size:0.9em;">
+                        <label for="{{ item_form.DELETE.id_for_label }}">{{ item_form.DELETE.label_tag }}</label>
+                        {{ item_form.DELETE }} Marcar para excluir
+                    </p>
+                {% endif %}
+                {# Renderiza os campos do formset. Personalize conforme necessário. #}
+                {% for field in item_form %}
+                    <p>
+                        <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <p class="form-error" style="color: red;">{{ error }}</p>
+                        {% endfor %}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        {# Adicionar aqui o JavaScript para o botão "Adicionar outra aparição" se estiver usando django-dynamic-formset ou similar #}
+    </div>
+    <button type="submit" style="background-color: #28a745; color:white; padding: 10px 15px; border:none; border-radius:4px; cursor:pointer; margin-top:20px;">Salvar Alterações</button>
+</form>
+<div id="editErrorMessagesPopup" class="form-error" style="margin-top:10px;"></div>
+
+{# O script para submissão AJAX deste formulário já está no mapa.html, dentro da função abrirEditarPopup, #}
+{# mas ele é adicionado ao #editarDesaparecidoContent. Se precisar de JS específico para este form, adicione aqui. #}
+{# O script no mapa.html que lida com a submissão do #editarPopupForm já está configurado para fazer o POST AJAX. #}

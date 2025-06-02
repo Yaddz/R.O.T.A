@@ -129,3 +129,14 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Configurações de Mídia (Fotos, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Lembre-se de criar a pasta 'media' na raiz do seu projeto backend
+# (no mesmo nível que 'manage.py', 'desaparecidos', 'rota_app')
+
+LOGIN_REDIRECT_URL = 'mapa_view'  # Para onde redirecionar após o login bem-sucedido
+LOGOUT_REDIRECT_URL = 'mapa_view' # Para onde redirecionar após o logout
+LOGIN_URL = 'login'             # Nome da URL de login para decoradores como @login_required

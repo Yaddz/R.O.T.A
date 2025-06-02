@@ -1,0 +1,37 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Confirmar Exclusão{% endblock %}
+
+{% block content %}
+<style>
+    .confirmation-container { max-width: 500px; margin: 50px auto; padding: 20px; text-align: center; background-color: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .confirmation-container h1 { color: #dc3545; }
+    .confirmation-container p { margin-bottom: 20px; }
+    .confirmation-container form button {
+        padding: 10px 20px;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+    .confirmation-container a.cancel-btn {
+        padding: 10px 20px;
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+    }
+</style>
+<div class="confirmation-container">
+    <h1>Confirmar Exclusão</h1>
+    <p>Você tem certeza que deseja excluir o cadastro de <strong>{{ desaparecido.nome }}</strong>?</p>
+    <p>Esta ação não pode ser desfeita.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Sim, Excluir</button>
+        <a href="{% url 'desaparecido:Detalhar' desaparecido.id %}" class="cancel-btn">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

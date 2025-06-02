@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}R.O.T.A.{% endblock %}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f4f4f4; 
+            padding-top: 60px; /* Espaço para o header fixo */
+        }
+        /* Header Styles */
+        .map-header { /* Renomeado de .navbar para .map-header para consistência */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff; /* Header branco */
+            color: #333333; /* Texto escuro para contraste */
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1001; 
+            box-sizing: border-box;
+            border-bottom: 1px solid #e0e0e0; /* Linha sutil abaixo do header */
+        }
+        .map-header .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-decoration: none;
+            color: #333333; /* Cor do logo */
+            /* Se você tiver uma imagem de logo:
+            content: url("{% static 'path/to/your/logo_dark.png' %}");
+            height: 40px; */
+        }
+        .map-header .nav-links a, .map-header .nav-links button {
+            color: #333333; /* Cor dos links do header */
+            text-decoration: none;
+            margin-left: 15px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 1em; /* Para garantir que o botão de logout tenha o mesmo tamanho */
+        }
+        .map-header .nav-links a:hover, .map-header .nav-links button:hover {
+            background-color: #f0f0f0; /* Fundo suave no hover */
+            color: #007bff; /* Cor do link no hover */
+        }
+        .map-header .nav-links .add-btn { /* Para o botão + Adicionar */
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+        .map-header .nav-links .add-btn:hover {
+            background-color: #218838;
+            color: white;
+        }
+        .map-header .nav-links .logout-btn {
+            background-color: #dc3545; /* Vermelho */
+            color: white;
+            border-color: #dc3545;
+        }
+        .map-header .nav-links .logout-btn:hover {
+            background-color: #c82333; /* Vermelho mais escuro */
+            color: white;
+        }
+        .user-greeting {
+            margin-left: 15px;
+            padding: 8px 0;
+            color: #333333;
+        }
+        .container { padding: 20px; }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <header class="map-header">
+        <a href="{% url 'mapa_view' %}" class="logo">R.O.T.A.</a>
+        <nav class="nav-links">
+            <a href="{% url 'desaparecido:Relatorios' %}">Relatórios</a>
+            <a href="{% url 'desaparecido:Exibir' %}">Ver Desaparecidos</a>
+            {% if user.is_authenticated %}
+                <span class="user-greeting">Olá, {{ user.username }}!</span>
+                <form id="logout-form-base" method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Logout</button> {# Garante que a classe logout-btn seja usada #}
+                </form> 
+                {% if user.is_staff %}
+                    {# O botão de adicionar específico do mapa está no mapa.html #}
+                    {# Se precisar de um botão de adicionar genérico aqui, adicione-o #}
+                    {# Ex: <a href="{% url 'alguma_url_de_cadastro_geral' %}" class="add-btn">+ Adicionar Algo</a> #}
+                {% endif %}
+            {% else %}
+                {# O botão de login do mapa abre um popup. Para outras páginas, pode ir para a página de login. #}
+                <a href="{% url 'login' %}">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

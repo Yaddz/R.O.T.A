@@ -1,0 +1,211 @@
+{% extends "base_generic.html" %}
+{% load static %}
+
+{% block title %}Relatórios de Desaparecidos{% endblock %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .report-container {
+        padding: 20px;
+    }
+    .filter-form {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .filter-form h2 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .filter-form .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 15px;
+    }
+    .filter-form .form-group {
+        flex: 1;
+        min-width: 200px; /* Garante que os campos não fiquem muito espremidos */
+    }
+    .filter-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+    }
+    .form-control { /* Estilo genérico para inputs do formulário */
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .filter-form button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+    }
+    .filter-form button:hover {
+        background-color: #0056b3;
+    }
+    .charts-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    .chart-container {
+        flex: 1;
+        min-width: 300px; /* Largura mínima para cada gráfico */
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .data-table-container {
+        margin-top: 30px;
+    }
+    .data-table-container table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .data-table-container th, .data-table-container td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .data-table-container th {
+        background-color: #f2f2f2;
+    }
+    .export-btn {
+        display: inline-block;
+        background-color: #28a745;
+        color: white;
+        padding: 10px 15px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .export-btn:hover {
+        background-color: #218838;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <h1>Relatórios de Desaparecidos</h1>
+
+    <form method="get" class="filter-form">
+        <h2>Filtrar Relatório</h2>
+        <div class="form-row">
+            <div class="form-group">{{ form.data_inicio.label_tag }} {{ form.data_inicio }}</div>
+            <div class="form-group">{{ form.data_fim.label_tag }} {{ form.data_fim }}</div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">{{ form.localizacao.label_tag }} {{ form.localizacao }}</div>
+            <div class="form-group">{{ form.status.label_tag }} {{ form.status }}</div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">{{ form.idade_minima.label_tag }} {{ form.idade_minima }}</div>
+            <div class="form-group">{{ form.idade_maxima.label_tag }} {{ form.idade_maxima }}</div>
+        </div>
+        <button type="submit">Aplicar Filtros</button>
+    </form>
+
+    <a href="{% url 'desaparecido:ExportarRelatorioCSV' %}?{{ request.GET.urlencode }}" class="export-btn">Exportar para CSV</a>
+
+    <div class="charts-section">
+        <div class="chart-container">
+            <h3>Desaparecidos por Status</h3>
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Desaparecidos por Ano</h3>
+            <canvas id="anosChart"></canvas>
+        </div>
+    </div>
+
+    <div class="data-table-container">
+        <h2>Dados Filtrados ({{ desaparecidos.count }} resultados)</h2>
+        {% if desaparecidos %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Idade</th>
+                    <th>Data Desap.</th>
+                    <th>Localização</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in desaparecidos %}
+                <tr>
+                    <td><a href="{% url 'desaparecido:Detalhar' d.id %}">{{ d.nome }}</a></td>
+                    <td>{{ d.idade|default:"N/A" }}</td>
+                    <td>{{ d.data_desaparecimento|date:"d/m/Y"|default:"N/A" }}</td>
+                    <td>{{ d.ultima_localizacao|default:"N/A" }}</td>
+                    <td>{{ d.get_status_display }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Nenhum resultado encontrado para os filtros aplicados.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'pie', // ou 'doughnut'
+            data: {
+                labels: {{ status_labels|safe }},
+                datasets: [{
+                    label: 'Desaparecidos por Status',
+                    data: {{ status_counts|safe }},
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: true }
+        });
+    }
+
+    const anosCtx = document.getElementById('anosChart');
+    if (anosCtx) {
+        new Chart(anosCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ anos_labels|safe }},
+                datasets: [{
+                    label: 'Desaparecidos por Ano',
+                    data: {{ anos_counts|safe }},
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true } },
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

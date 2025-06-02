@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes de {{ desaparecido.nome }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f8f9fa; color: #343a40; }
+        .container { max-width: 800px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .detail-item { background-color: #e9ecef; padding: 15px; border-radius: 5px; }
+        .detail-item strong { display: block; margin-bottom: 5px; color: #495057; }
+        .photos { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+        .photos img {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            object-fit: cover;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .no-photo {
+            width: 200px; height: 200px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-style: italic;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 15px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-link:hover { background-color: #5a6268; }
+        .map-placeholder {
+            height: 300px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        .admin-actions a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
+        }
+        .edit-btn { background-color: #ffc107; } /* Amarelo */
+        .delete-btn { background-color: #dc3545; } /* Vermelho */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Detalhes de: {{ desaparecido.nome }}</h1>
+
+        <div class="photos">
+            <div>
+                <strong>Foto Principal:</strong>
+                {% if desaparecido.foto_principal %}
+                    <img src="{{ desaparecido.foto_principal.url }}" alt="Foto principal de {{ desaparecido.nome }}">
+                {% else %}
+                    <div class="no-photo">Sem foto principal</div>
+                {% endif %}
+            </div>
+            <div>
+                <strong>Foto de Progressão:</strong>
+                {% if desaparecido.foto_progressao %}
+                    <img src="{{ desaparecido.foto_progressao.url }}" alt="Foto de progressão de {{ desaparecido.nome }}">
+                {% else %}
+                    <div class="no-photo">Sem foto de progressão</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-item"><strong>Nome Completo:</strong> {{ desaparecido.nome }}</div>
+            <div class="detail-item"><strong>Idade (no desaparecimento):</strong> {{ desaparecido.idade|default:"Não informada" }}</div>
+            <div class="detail-item"><strong>Data do Desaparecimento:</strong> {{ desaparecido.data_desaparecimento|date:"d/m/Y"|default:"Não informada" }}</div>
+            <div class="detail-item"><strong>Status:</strong> {{ desaparecido.get_status_display }}</div>
+            <div class="detail-item"><strong>Última Localização Conhecida:</strong> {{ desaparecido.ultima_localizacao|default:"Não informada" }}</div>
+            <div class="detail-item"><strong>Número do B.O.:</strong> {{ desaparecido.bo_numero|default:"Não informado" }}</div>
+            <div class="detail-item"><strong>Data de Registro no Sistema:</strong> {{ desaparecido.data_registro|date:"d/m/Y" }}</div>
+        </div>
+        <div class="detail-item" style="grid-column: 1 / -1; margin-top: 20px;"> <!-- Ocupa toda a largura -->
+            <strong>Descrição e Detalhes Adicionais:</strong>
+            <p>{{ desaparecido.descricao|default:"Nenhuma descrição fornecida."|linebreaksbr }}</p>
+        </div>
+
+        {% if desaparecido.latitude and desaparecido.longitude %}
+            <div class="map-placeholder">Aqui poderia ir um mapa com a localização: Lat: {{ desaparecido.latitude }}, Lon: {{ desaparecido.longitude }}</div>
+        {% endif %}
+
+        <a href="{% url 'desaparecido:Exibir' %}" class="back-link">Voltar para a Lista</a>
+
+        {% if user.is_authenticated and user.is_staff %}
+        <div class="admin-actions" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+            <h3>Ações de Administrador</h3>
+            <a href="{% url 'desaparecido:Editar' desaparecido.id %}" class="edit-btn">Editar Cadastro</a>
+            <a href="{% url 'desaparecido:Excluir' desaparecido.id %}" class="delete-btn">Excluir Cadastro</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
