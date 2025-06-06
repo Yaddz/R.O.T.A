@@ -1,0 +1,71 @@
+{% load static tailwind_tags%}
+{% tailwind_css %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar {{ desaparecido.nome|default:"Desaparecido" }}</title>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8 pb-4 border-b border-gray-300">
+            <h1 class="text-4xl font-bold text-gray-900">
+                Editar Cadastro: {{ desaparecido.nome|default:"Pessoa Desaparecida" }}
+            </h1>
+        </header>
+
+        <form method="post" enctype="multipart/form-data" action="{% url 'desaparecidos:editar' desaparecido.id %}" id="editForm" class="bg-white p-6 md:p-8 rounded-t-xl shadow-lg space-y-6">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="mb-4">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </form>
+
+        <!-- Seção de Ações, visualmente conectada mas funcionalmente separada -->
+        <div class="bg-white p-6 md:p-8 rounded-b-xl shadow-lg border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <!-- Botão de Remover à esquerda -->
+                <form method="POST" action="{% url 'desaparecidos:remover' desaparecido.id %}" onsubmit="return confirm('Tem certeza que deseja remover este cadastro?');" class="w-full sm:w-auto">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-center bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-red-700 transition-colors duration-300">
+                        Remover Cadastro
+                    </button>
+                </form>
+                <!-- Botões de Cancelar e Salvar à direita -->
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <a href="{% url 'desaparecidos:detalhar' desaparecido.id %}" class="w-full sm:w-auto text-center bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-300">
+                        Cancelar
+                    </a>
+                    <button type="submit" form="editForm" class="w-full sm:w-auto bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
