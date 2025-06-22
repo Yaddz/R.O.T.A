@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "django_browser_reload",
     "mapa_app",
     "desaparecidos_app",
+    "rest_framework"
 ]
 
 TAILWIND_APP_NAME = 'theme'
