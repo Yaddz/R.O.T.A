@@ -56,3 +56,7 @@ def remover_view(request, id):
     # Se o acesso for via GET, ou qualquer outro método, redireciona para a página de detalhes.
     # Isso previne a remoção acidental ao acessar a URL diretamente.
     return redirect('desaparecidos:detalhar', id=id)
+
+
+def relatorio_view(request):
+    return render(request, 'desaparecido/relatorios.html')
