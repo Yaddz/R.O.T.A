@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - R.O.T.A</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div class="container mx-auto px-4 py-12">
+        <header class="mb-10 pb-4 border-b border-slate-200">
+            <a href="{% url 'mapa' %}" class="inline-block">
+                <img src="{% static 'images/ROTALOGO.png' %}" alt="Logo R.O.T.A" class="h-12 w-auto">
+            </a>
+        </header>
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 mb-4 sm:mb-0">
+                Relatórios de Casos
+            </h1>
+            <a href="{% url 'desaparecidos:exibir' %}" class="inline-block bg-slate-200 text-slate-800 font-bold py-2 px-5 rounded-lg shadow-sm hover:bg-slate-300 transition-colors duration-300">
+                Voltar para Lista
+            </a>
+        </div>
+        <div class="bg-white p-8 rounded-xl shadow-md">
+            <h2 class="text-xl font-semibold mb-6 text-slate-800">Resumo de Casos por Status</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for relatorio in status_reports %}
+                <div class="bg-slate-100 p-6 rounded-lg border border-slate-200 text-center">
+                    <p class="text-4xl font-bold text-blue-600">{{ relatorio.total }}</p>
+                    <p class="text-base font-medium text-slate-600 mt-2">{{ relatorio.status }}</p>
+                </div>
+                {% empty %}
+                <p class="col-span-full text-center text-slate-500">Não há dados de status para exibir.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Seção de Gráficos -->
+        <div class="mt-10 flex justify-center"> {# Centraliza o único gráfico restante #}
+            <!-- Gráfico por Faixa Etária -->
+            <div class="bg-white p-8 rounded-xl shadow-md">
+                <h2 class="text-xl font-semibold mb-6 text-center text-slate-800">Casos por Faixa Etária</h2>
+                <canvas id="ageChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data from Django, passada de forma segura
+            const ageData = JSON.parse('{{ age_reports_json|safe }}');
+
+            // Gráfico de Faixa Etária (Pizza/Doughnut)
+            if (document.getElementById('ageChart')) {
+                const ageCtx = document.getElementById('ageChart').getContext('2d');
+                new Chart(ageCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ageData.labels,
+                        datasets: [{
+                            label: 'Nº de Casos',
+                            data: ageData.data,
+                            backgroundColor: [
+                                '#60a5fa', // blue-400
+                                '#facc15', // yellow-400
+                                '#4ade80', // green-400
+                                '#38bdf8', // sky-400
+                                '#a78bfa', // purple-400
+                                '#9ca3af'  // slate-400
+                            ],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: { display: false }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

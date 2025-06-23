@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre o R.O.T.A</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto px-4 py-12">
+
+        <header class="mb-10 pb-4 border-b border-slate-200">
+            <a href="{% url 'mapa' %}" class="inline-block">
+                <img src="{% static 'images/ROTALOGO.png' %}" alt="Logo R.O.T.A" class="h-12 w-auto">
+            </a>
+        </header>
+
+        <div class="bg-white p-8 md:p-12 rounded-xl shadow-md max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-slate-900 mb-4">
+                Sobre o Projeto R.O.T.A
+            </h1>
+            <p class="text-lg text-slate-600 mb-6">
+                R.O.T.A (Registro e Observação de Trajetórias de Ausentes) é uma plataforma dedicada a centralizar e divulgar informações sobre pessoas desaparecidas, com o objetivo de auxiliar na sua localização.
+            </p>
+
+            <div class="space-y-4 text-slate-700">
+                <p>
+                    Acreditamos que a tecnologia pode ser uma ferramenta poderosa para conectar pessoas e mobilizar comunidades. Nossa plataforma permite o cadastro de casos de desaparecimento, a visualização georreferenciada em um mapa interativo e a geração de relatórios estatísticos que podem ajudar a entender padrões e direcionar esforços de busca.
+                </p>
+                <p>
+                    Este projeto é um esforço colaborativo e de código aberto, construído com a esperança de trazer respostas e conforto para famílias que enfrentam a angústia da incerteza.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

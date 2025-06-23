@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes de {{ desaparecido.nome }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto px-4 py-12">
+
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 mb-4 sm:mb-0">
+                Detalhes: {{ desaparecido.nome }}
+            </h1>
+            <a href="{% url 'desaparecidos:exibir' %}" class="inline-block bg-slate-200 text-slate-800 font-bold py-2 px-5 rounded-lg shadow-sm hover:bg-slate-300 transition-colors duration-300">
+                Voltar para Lista
+            </a>
+        </header>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3">
+                <div class="md:col-span-1">
+                    {% if desaparecido.foto_principal %}
+                        <img src="{{ desaparecido.foto_principal.url }}" alt="Foto de {{ desaparecido.nome }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full bg-slate-200 flex items-center justify-center">
+                            <span class="text-slate-500">Sem foto</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2 p-8">
+                    <h2 class="text-4xl font-bold text-slate-900">{{ desaparecido.nome }}</h2>
+                    <div class="mt-2">
+                        {% if desaparecido.status == 'encontrado' %}
+                            <span class="inline-block bg-emerald-100 text-emerald-800 text-sm font-semibold px-3 py-1 rounded-full">
+                                {{ desaparecido.get_status_display }}
+                            </span>
+                        {% elif desaparecido.status == 'desaparecido' %}
+                            <span class="inline-block bg-amber-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full">
+                                {{ desaparecido.get_status_display }}
+                            </span>
+                        {% else %}
+                             <span class="inline-block bg-sky-100 text-sky-800 text-sm font-semibold px-3 py-1 rounded-full">
+                                {{ desaparecido.get_status_display }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <dl class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                        <div class="sm:col-span-1"><dt class="font-medium text-slate-500">Idade Registrada</dt><dd class="mt-1 text-slate-900">{{ desaparecido.idade|default:"Não informada" }}</dd></div>
+                        <div class="sm:col-span-1"><dt class="font-medium text-slate-500">Desapareceu em</dt><dd class="mt-1 text-slate-900">{{ desaparecido.data_desaparecimento|date:"d/m/Y"|default:"Não informada" }}</dd></div>
+                        <div class="sm:col-span-2"><dt class="font-medium text-slate-500">Última Localização Conhecida</dt><dd class="mt-1 text-slate-900">{{ desaparecido.ultima_localizacao|default:"Não informada" }}</dd></div>
+                        <div class="sm:col-span-1"><dt class="font-medium text-slate-500">Nº do Boletim de Ocorrência</dt><dd class="mt-1 text-slate-900">{{ desaparecido.bo_numero|default:"Não informado" }}</dd></div>
+                        <div class="sm:col-span-1"><dt class="font-medium text-slate-500">Data do Registro no Sistema</dt><dd class="mt-1 text-slate-900">{{ desaparecido.data_registro|date:"d/m/Y"|default:"Não informada" }}</dd></div>
+                    </dl>
+
+                    {% if desaparecido.descricao %}
+                    <div class="mt-6 pt-4 border-t border-slate-200">
+                        <h3 class="text-base font-medium text-slate-500">Descrição e Circunstâncias</h3>
+                        <p class="mt-2 text-sm text-slate-800 whitespace-pre-line">{{ desaparecido.descricao }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="p-8 border-t border-slate-200 flex flex-col sm:flex-row justify-end">
+                <a href="{% url 'desaparecidos:editar' desaparecido.id %}" class="w-full sm:w-auto text-center bg-blue-600 text-white font-bold py-2 px-5 rounded-lg shadow-sm hover:bg-blue-700 transition-colors duration-300">
+                    Editar Cadastro
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>

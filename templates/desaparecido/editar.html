@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar {{ desaparecido.nome|default:"Desaparecido" }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div class="container mx-auto px-4 py-12">
+        <header class="mb-10 pb-4 border-b border-slate-200">
+            <h1 class="text-3xl font-bold text-slate-900">
+                Editar Cadastro: {{ desaparecido.nome|default:"Pessoa Desaparecida" }}
+            </h1>
+        </header>
+
+        <form method="post" enctype="multipart/form-data" action="{% url 'desaparecidos:editar' desaparecido.id %}" id="editForm" class="bg-white p-8 rounded-t-xl shadow-md space-y-8">
+            {% csrf_token %}
+            {# Renderiza os campos ocultos de latitude e longitude explicitamente para garantir que o JS os encontre #}
+            {{ form.latitude }}
+            {{ form.longitude }}
+            
+            {% if form.non_field_errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                {% if not field.is_hidden %}
+                    {# Lógica especial para o campo de localização e o mapa #}
+                    {% if field.name == 'ultima_localizacao' %}
+                        <div>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">{{ field.label }}</label>
+                            <div class="flex items-center gap-2">
+                                {{ field }}
+                                <button type="button" id="search-coords-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-blue-700 transition-colors">Buscar Coordenadas</button>
+                            </div>
+                            <div id="nominatim-message" class="mt-2 text-sm"></div>
+                            {% if field.help_text %}<p class="mt-2 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
+                            {% if field.errors %}<div class="mt-2 text-sm text-red-600">{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+                        </div>
+                        <!-- Mapa de Pré-visualização -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Pré-visualização no Mapa</label>
+                            <div id="preview-map" class="w-full h-80 bg-slate-200 rounded-lg shadow-inner z-0"></div>
+                        </div>
+                    {% else %}
+                        {# Renderização padrão para todos os outros campos #}
+                        <div>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<p class="mt-2 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
+                            {% if field.errors %}<div class="mt-2 text-sm text-red-600">{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </form>
+
+        <!-- Seção de Ações, visualmente conectada mas funcionalmente separada -->
+        <div class="bg-white p-8 rounded-b-xl shadow-md border-t border-slate-200">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <!-- Botão de Remover à esquerda -->
+                <form method="POST" action="{% url 'desaparecidos:remover' desaparecido.id %}" onsubmit="return confirm('Tem certeza que deseja remover este cadastro?');" class="w-full sm:w-auto">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-center bg-red-600 text-white font-bold py-2 px-5 rounded-lg shadow-sm hover:bg-red-700 transition-colors duration-300">
+                        Remover Cadastro
+                    </button>
+                </form>
+                <!-- Botões de Cancelar e Salvar à direita -->
+                <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                    <a href="{% url 'desaparecidos:detalhar' desaparecido.id %}" class="w-full sm:w-auto text-center bg-slate-200 text-slate-800 font-bold py-2 px-5 rounded-lg shadow-sm hover:bg-slate-300 transition-colors duration-300">
+                        Cancelar
+                    </a>
+                    <button type="submit" form="editForm" class="w-full sm:w-auto bg-blue-600 text-white font-bold py-2 px-5 rounded-lg shadow-sm hover:bg-blue-700 transition-colors duration-300">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'desaparecido/form.js' %}"></script>
+</body>
+</html>

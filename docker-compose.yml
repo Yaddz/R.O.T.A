@@ -1,14 +1,17 @@
 version: '3.8'
+
 services:
-  db:
-    image: mysql:8.0 # Ou a versão que preferir
-    container_name: mysql-server # Nome do container
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: admin
-    ports:
-      - "3306:3306"
+  # Serviço para o seu ambiente de desenvolvimento (onde o código roda)
+  app:
+    # Usa a mesma imagem base que você tinha no seu devcontainer.json original
+    image: mcr.microsoft.com/devcontainers/universal:2
+    
+    # Monta o seu código local na pasta /workspace dentro do contêiner
     volumes:
-      - mysql_data:/var/lib/mysql # Para persistir os dados
-volumes:
-  mysql_data:
+      - ..:/workspace:cached
+      
+    # Mantém o contêiner rodando para que o VS Code possa se conectar a ele
+    command: sleep infinity
+    ports:
+      # Expõe a porta 8000 do contêiner para o seu PC, para acessar o app Django
+      - "8000:8000"

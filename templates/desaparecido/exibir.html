@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desaparecidos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto px-4 py-12">
+
+        <header class="mb-10 pb-4 border-b border-slate-200">
+            <a href="{% url 'mapa' %}" class="inline-block">
+                <img src="{% static 'images/ROTALOGO.png' %}" alt="Logo R.O.T.A" class="h-12 w-auto">
+            </a>
+        </header>
+
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 mb-4 sm:mb-0">
+                Pessoas Desaparecidas
+            </h1>
+            {% if user.is_authenticated %}
+            <a href="{% url 'desaparecidos:adicionar' %}"
+                class="inline-block bg-blue-600 text-white font-bold py-2 px-5 rounded-lg shadow-sm hover:bg-blue-700 transition-colors duration-300">
+                Cadastrar Novo
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Barra de Pesquisa -->
+        <div class="mb-8">
+            <form method="get" action="{% url 'desaparecidos:exibir' %}" class="flex items-center bg-white rounded-lg shadow-sm p-1">
+                <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Buscar por nome ou B.O..." class="flex-grow px-4 py-2 border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md bg-transparent placeholder:text-slate-400">
+                <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg shadow-sm hover:bg-blue-700 transition-colors ml-2">
+                    Buscar
+                </button>
+            </form>
+        </div>
+
+        {% if desaparecidos %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for desaparecido in desaparecidos %}
+            <div class="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full transition-transform duration-300 hover:-translate-y-1">
+                <a href="{% url 'desaparecidos:detalhar' desaparecido.id %}" class="block">
+                    {% if desaparecido.foto_principal %}
+                    <img src="{{ desaparecido.foto_principal.url }}" alt="Foto de {{ desaparecido.nome }}"
+                        class="w-full h-64 object-cover">
+                    {% else %}
+                    <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                        <span class="text-slate-500">Sem foto</span>
+                    </div>
+                    {% endif %}
+                </a>
+                <div class="p-5 flex-grow flex flex-col">
+                    <h2 class="text-lg font-bold text-slate-900 truncate">{{ desaparecido.nome }}</h2>
+                    <p class="text-sm text-slate-500 mb-3">Desapareceu em: {{ desaparecido.data_desaparecimento|date:"d/m/Y"|default:"N/A" }}</p>
+                    
+                    <div class="mt-auto pt-3">
+                        {% if desaparecido.status == 'encontrado' %}
+                        <span class="inline-block bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+                            {{ desaparecido.get_status_display }}
+                        </span>
+                        {% elif desaparecido.status == 'desaparecido' %}
+                        <span class="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+                            {{ desaparecido.get_status_display }}
+                        </span>
+                        {% else %}
+                        <span class="inline-block bg-sky-100 text-sky-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+                            {{ desaparecido.get_status_display }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-20 bg-white rounded-lg shadow-md">
+            <h3 class="text-xl font-semibold text-slate-700">Nenhum resultado encontrado</h3>
+            <p class="text-slate-500 mt-2">Tente ajustar sua busca ou cadastre uma nova pessoa desaparecida.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+
+</html>

@@ -1,8 +1,26 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  "name": "Meu Projeto Local (PHP com MySQL)",
+
+  // Aponta para o seu arquivo Docker Compose
+  "dockerComposeFile": "docker-compose.yml",
+
+  // Especifica qual serviço do docker-compose.yml é o ambiente de desenvolvimento
+  "service": "app",
+
+  // Define o diretório de trabalho padrão dentro do contêiner 'app'
+  "workspaceFolder": "/workspace",
+
+  // Adicione aqui as extensões do VS Code que você quer que sejam instaladas
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "ms-azuretools.vscode-docker",
+        "adpyke.vscode-sql-formatter"
+      ]
+    }
   },
-  // Comando para ser executado toda vez que o Codespace inicia
-  "postStartCommand": "docker-compose up -d"
+  
+  // Encaminha portas adicionais se sua aplicação precisar (ex: um servidor web na porta 8000)
+  "forwardPorts": [8000]
 }
