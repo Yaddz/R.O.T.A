@@ -31,3 +31,13 @@ class Desaparecido(models.Model):
 
     def __str__(self):
         return self.nome
+    
+class Avistamento(models.Model):
+    desaparecido = models.ForeignKey(Desaparecido, related_name='avistamentos', on_delete=models.CASCADE)
+    data_avistamento = models.DateTimeField()
+    local_descricao = models.CharField(max_length=255, blank=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=7)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7)
+
+    def __str__(self):
+        return f"Avistamento de {self.desaparecido.nome} em {self.data_avistamento}"

@@ -15,10 +15,13 @@ urlpatterns = [
     path("", views.exibir_view, name="exibir"),  
     path("adicionar/", views.adicionar_view, name="adicionar"),
     path('editar/<int:id>/', views.editar_view, name='editar'), 
-    path("<int:id>/", views.detalhar_view, name="detalhar"), # Adicionado / no final para consistência
+    path("<int:id>/", views.detalhar_view, name="detalhar"),
     path('remover/<int:id>/', views.remover_view, name='remover'),
 
-    path('relatorio/', views.relatorio_view, name='relatorio'), # Adicionada barra final para consistência
+    path('relatorio/', views.relatorio_view, name='relatorio'), 
 
-    path('api/', include(route.urls)) # Adiciona o prefixo 'api/' às URLs do router
+    path('api/', include(route.urls)),
+    
+    # NOVO: Adicione esta linha para a API de sugestões
+    path('api/sugestoes/', views.sugestoes_api_view, name='api-sugestoes'),
 ]

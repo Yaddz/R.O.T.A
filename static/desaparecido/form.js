@@ -1,35 +1,32 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("form.js loaded and DOM is ready.");
-
-    // --- 1. Element Selection & Validation ---
+    // ... (Seleção de elementos) ...
     const addressInput = document.getElementById('id_ultima_localizacao');
-    const latInput = document.getElementById('id_latitude');
-    const lonInput = document.getElementById('id_longitude');
-    const searchButton = document.getElementById('search-coords-btn');
-    const messageDiv = document.getElementById('nominatim-message');
+    // ...
     const mapDiv = document.getElementById('preview-map');
-
-    // Check if all required elements are on the page
-    if (!addressInput || !latInput || !lonInput || !searchButton || !messageDiv || !mapDiv) {
-        console.error("Um ou mais elementos do formulário não foram encontrados. Verifique os IDs no template HTML.");
-        // Stop execution if essential elements are missing
-        return;
-    }
+    
+    // ... (Verificação de elementos) ...
 
     let previewMap = null;
     let previewMarker = null;
 
+    // NOVO: Define o ícone pulsante
+    const pulsingIcon = L.divIcon({
+        className: 'marcador-pulsante',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+
     // --- 2. Map Functions ---
     function initializeMap() {
-        console.log("Initializing preview map.");
-        // Inicia o mapa com uma visão geral do Brasil
+        // ...
         previewMap = L.map(mapDiv).setView([-15.79, -47.88], 4);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(previewMap);
 
         // Coloca o marcador inicial em formulários de edição
+        // ... (o resto da função initializeMap continua igual) ...
         const initialLat = latInput.value;
         const initialLon = lonInput.value;
         if (isValidCoord(initialLat) && isValidCoord(initialLon)) {
@@ -43,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateMap(lat, lon) {
+        // ... (validação de previewMap e coords) ...
         if (!previewMap || !isValidCoord(lat) || !isValidCoord(lon)) {
             console.warn("updateMap called with invalid map or coordinates.");
             return;
@@ -54,13 +52,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (previewMarker) {
             previewMarker.setLatLng(latlng);
         } else {
-            previewMarker = L.marker(latlng).addTo(previewMap);
+            // ALTERADO: Usa o 'pulsingIcon'
+            previewMarker = L.marker(latlng, { icon: pulsingIcon }).addTo(previewMap);
         }
-        // Use flyTo for a smooth animation
         previewMap.flyTo(latlng, 15);
     }
 
     // --- 3. Nominatim Search Logic ---
+    // ... (o resto do ficheiro (handleSearch, listeners, etc.) continua igual) ...
     async function handleSearch() {
         const address = addressInput.value.trim();
         console.log(`Search button clicked. Address: "${address}"`);
@@ -106,10 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchButton.addEventListener('click', handleSearch);
 
-    // --- 4. Listeners for Manual Coordinate Input ---
     latInput.addEventListener('input', () => updateMap(latInput.value, lonInput.value));
     lonInput.addEventListener('input', () => updateMap(latInput.value, lonInput.value));
 
-    // --- 5. Initialize Everything ---
     initializeMap();
 });

@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required # Importa o decorador
 from .forms import FormularioDesaparecido
 from django.db.models import Count, Q, Case, When, Value, CharField
 import json
+from django.http import JsonResponse
+from django.db.models import Q
 
 
 def exibir_view(request):
@@ -73,6 +75,24 @@ def remover_view(request, id):
     # Se o acesso for via GET, ou qualquer outro método, redireciona para a página de detalhes.
     # Isso previne a remoção acidental ao acessar a URL diretamente.
     return redirect('desaparecidos:detalhar', id=id)
+
+def sugestoes_api_view(request):
+    """
+    Uma view de API leve apenas para sugestões de busca.
+    """
+    query = request.GET.get('q', '')
+    
+    # Se a busca for muito curta, não retorna nada
+    if len(query) < 2:
+        return JsonResponse([], safe=False)
+    
+    # Busca por nome OU B.O. e limita a 10 resultados para performance
+    desaparecidos = Desaparecido.objects.filter(
+        Q(nome__icontains=query) | Q(bo_numero__icontains=query)
+    ).values('id', 'nome', 'bo_numero')[:10] # Pega apenas os campos necessários
+    
+    sugestoes = list(desaparecidos)
+    return JsonResponse(sugestoes, safe=False)
 
 
 def relatorio_view(request):
