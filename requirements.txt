@@ -1,2 +1,5 @@
 django
 djangorestframework
+pillow
+django_
+django_browser_reload
