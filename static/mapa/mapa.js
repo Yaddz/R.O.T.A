@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function startMap() {
     const urlRelatorio = mapaElement.dataset.urlRelatorio;
     const urlSobre = mapaElement.dataset.urlSobre;
     const apiUrl = mapaElement.dataset.apiUrl;
+    const urlDetalhePattern = mapaElement.dataset.urlDetalhe; // <-- ADICIONE ESTA LINHA
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

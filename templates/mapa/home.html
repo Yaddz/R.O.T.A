@@ -21,12 +21,13 @@
 <body class="h-full">
     
     <div id="map" 
-         class="w-full h-full z-50"
-         data-url-exibir="{% url 'desaparecidos:exibir' %}"
-         data-api-url="{% url 'desaparecidos:desaparecidos-list' %}"
-         data-url-relatorio="{% url 'desaparecidos:relatorio' %}"
-         data-url-sobre="{% url 'sobre' %}">
-    </div>
+     class="w-full h-full z-50"
+     data-url-exibir="{% url 'desaparecidos:exibir' %}"
+     data-api-url="{% url 'desaparecidos:desaparecidos-list' %}"
+     data-url-relatorio="{% url 'desaparecidos:relatorio' %}"
+     data-url-sobre="{% url 'sobre' %}"
+     data-url-detalhe="{% url 'desaparecidos:detalhar' 0 %}"> {# <-- ADICIONE ESTA LINHA #}
+</div>
 
     <script src="{% static 'mapa/mapa.js' %}"></script>
     <script src="{% static 'mapa/markers.js' %}"></script>

@@ -1,5 +1,5 @@
 // This function is called from mapa.js to load markers on the map.
-function loadMarkers(map, markerCluster, apiUrl) {
+function loadMarkers(map, markerCluster, apiUrl, urlDetalhePattern) {
     // Limpa os marcadores anteriores para exibir apenas os resultados da busca
     markerCluster.clearLayers();
 
@@ -22,10 +22,14 @@ function loadMarkers(map, markerCluster, apiUrl) {
                 if (desaparecido.latitude && desaparecido.longitude) {
                     const lat = parseFloat(desaparecido.latitude);
                     const lon = parseFloat(desaparecido.longitude);
-
+                    
                     if (!isNaN(lat) && !isNaN(lon)) {
                         // Constrói a URL para a página de detalhes
-                        const detailUrl = `/desaparecidos/${desaparecido.id}/`;
+                        const detailUrl = urlDetalhePattern.replace('0', desaparecido.id);
+
+                        const dataParts = desaparecido.data_desaparecimento.split('-');
+                        // 2. Remonta a data no formato "DD/MM/YYYY"
+                        const dataFormatada = `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}`;
 
                         // Create the popup content dynamically
                         const popupContent = `
